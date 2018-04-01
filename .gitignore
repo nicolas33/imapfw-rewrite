@@ -1,0 +1,12 @@
+.*.swp
+.*.swo
+*~
+*.pyc
+__pycache__/
+/wiki/
+/website/
+.idea/
+build/
+dist/
+imapfw.egg-info/
+.coverage
