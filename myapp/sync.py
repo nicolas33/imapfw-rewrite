@@ -30,6 +30,7 @@ from imapfw.api.repositories import (
     MaildirRepository,
     StateRepository,
 )
+from imapfw.api.endpoints import ImapEndpoint, MaildirEndpoint, StateEndpoint
 
 from imapfw.api.managers import RepositoryManager, EngineManager
 from imapfw.api.logger import Logger
@@ -54,48 +55,46 @@ try:
     #runtime.set_backend(PBackend)
 
     # Setup the app. At the end of the setup, the app is ready to go.
-    imapRepositoryManager = RepositoryManager(PBackend, PBackend)
-    maildirRepositoryManager = RepositoryManager(PBackend, PBackend)
-    stateRepositoryManager = RepositoryManager(PBackend, PBackend)
+    imapManager = RepositoryManager()
+    maildirManager = RepositoryManager()
+    stateManager = RepositoryManager()
+    engineManager = EngineManager()
 
-    imapRepositoryManager.init(ImapRepository, ImapEndpoint)
-    maildirRepositoryManager.init(MaildirRepository, MaildirEndpoint)
-    stateRepositoryManager.init(StateRepository, StateEndpoint)
+    imapManager.set_backends(PBackend, PBackend)
+    maildirManager.set_backends(PBackend, PBackend)
+    stateManager.set_backends(PBackend, PBackend)
+    engineManager.set_backend(PBackend)
 
-    # The engine can be run in main or in a worker.
-    engine = ConvertEngine() # In main.
-    # Or engine.loop in a worker if the engine is a service.
+    imapManager.init(ImapRepository, ImapEndpoint, errorLink, logger)
+    maildirManager.init(MaildirRepository, MaildirEndpoint, errorLink, logger)
+    stateManager.init(StateRepository, StateEndpoint, errorLink, logger)
+    chans = tuple(i.get_chan() for i in [imapManager, maildirManager, stateManager])
+    engine.init(ConvertEngine, errorLink, logger, *chans)
 
-    #engineWorker = wm.create_localWorker(engine.run)
+    imapManager.set_maxEndpoints(1)
+    maildirManager.set_maxEndpoints(1)
+    stateManager.set_maxEndpoints(1)
     # Setup end.
 
     # Start here #
-    imapRepositoryManager.start()
-    maildirRepositoryManager.start()
-    stateRepositoryManager.start()
+    imapManager.start()
+    maildirManager.start()
+    stateManager.start()
+    engine.start()
 
-    # Or engineManager.start()
-    engine.run(
-        errorLink,
-        imapRepositoryManager.get_repoChan(),
-        maildirRepositoryManager.get_repoChan(),
-        stateRepositoryManager.get_repoChan(),
-    )
-
-    imapRepositoryManager.stop()
-    maildirRepositoryManager.stop()
-    stateRepositoryManager.stop()
+    engine.join()
+    imapManager.stop()
+    maildirManager.stop()
+    stateManager.stop()
 
 except KeyboardInterrupt:
-    for manager in [imapRepositoryManager, maildirRepositoryManager,
-            stateRepositoryManager]:
+    for manager in [engineManager, imapManager, maildirManager, stateManager]:
         try:
             manager.stop()
         except:
             pass
 except Exception:
-    for manager in [imapRepositoryManager, maildirRepositoryManager,
-            stateRepositoryManager]:
+    for manager in [engineManager, imapManager, maildirManager, stateManager]:
         try:
             manager.kill()
         except:
