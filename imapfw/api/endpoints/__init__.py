@@ -1,6 +1,3 @@
-# The MIT License (MIT).
-# Copyright (c) 2018-2018, Nicolas Sebrecht & contributors.
-
 """
 
 The public API.
@@ -12,7 +9,9 @@ and how to structure the underlying code.
 """
 
 __all__ = [
-    'ConvertEngine',
+    'ImapEndpoint',
+    'MaildirEndpoint',
+    'StateEndpoint',
 ]
 
-from imapfw.engines import ConvertEngine
+from imapfw.endpoints import ImapEndpoint, MaildirEndpoint, StateEndpoint

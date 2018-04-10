@@ -21,8 +21,6 @@ concurrency-safe.
 
 """
 
-import pickle
-
 #from imapfw import runtime
 #from imapfw.constants import WRK
 
@@ -161,16 +159,16 @@ class ThreadingBackend(ConcurrencyInterface):
                 worker. In daemon mode: workers get's killed when the main thread
                 gets killed."""
 
-                runtime.ui.debugC(WRK, "%s killed"% self._name)
+                #runtime.ui.debugC(WRK, "%s killed"% self._name)
 
             def start(self):
                 self._thread.start()
-                runtime.ui.debugC(WRK, "%s started"% self._name)
+                #runtime.ui.debugC(WRK, "%s started"% self._name)
 
             def join(self):
-                runtime.ui.debugC(WRK, "%s join"% self._name)
+                #runtime.ui.debugC(WRK, "%s join"% self._name)
                 self._thread.join() # Block until thread is done.
-                runtime.ui.debugC(WRK, "%s joined"% self._name)
+                #runtime.ui.debugC(WRK, "%s joined"% self._name)
 
         return Worker(name, target, args)
 
@@ -217,9 +215,6 @@ class ThreadingBackend(ConcurrencyInterface):
                     return None
 
             def put(self, data):
-                # Fail now if data can't be pickled. Otherwise, error will be
-                # raised at random time.
-                pickle.dumps(data)
                 self._queue.put(data)
 
         return TQueue()
@@ -272,18 +267,18 @@ class MultiProcessingBackend(ConcurrencyInterface):
 
                 self._process.terminate() # Send SIGTERM.
                 self.join(verbose=False)
-                runtime.ui.debugC(WRK, "%s killed"% self._name)
+                #runtime.ui.debugC(WRK, "%s killed"% self._name)
 
             def start(self):
                 self._process.start()
-                runtime.ui.debugC(WRK, "%s started"% self._name)
+                #runtime.ui.debugC(WRK, "%s started"% self._name)
 
             def join(self, verbose=True):
-                if verbose is True:
-                    runtime.ui.debugC(WRK, "%s join"% self._name)
+                # if verbose is True:
+                    #runtime.ui.debugC(WRK, "%s join"% self._name)
                 self._process.join() # Block until process is done.
-                if verbose is True:
-                    runtime.ui.debugC(WRK, "%s joined"% self._name)
+                # if verbose is True:
+                    #runtime.ui.debugC(WRK, "%s joined"% self._name)
 
         return Worker(name, target, args)
 
@@ -325,10 +320,10 @@ class MultiProcessingBackend(ConcurrencyInterface):
                     return None
 
             def put(self, data):
-                # Fail now if data can't be pickled. Otherwise, error will be
-                # raised at random time.
-                pickle.dumps(data)
                 self._queue.put(data)
+
+            def put_nowait(self, data):
+                self._queue.put_nowait(data)
 
         return MQueue()
 

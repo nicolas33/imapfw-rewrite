@@ -12,15 +12,11 @@ and how to structure the underlying code.
 """
 
 
-from imapfw.managers import (
-    EngineManager,
-    LoggerManager,
-    RepositoryManager,
+from imapfw.logger import (
+    Logger,
 )
 
 
 __all__ = [
-    'EngineManager',
-    'LoggerManager',
-    'RepositoryManager',
+    'Logger',
 ]

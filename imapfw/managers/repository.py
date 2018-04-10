@@ -66,13 +66,13 @@ class RepositoryManager(object):
             chan = self._endpointsChans.pop()
             name = "{}.{}".format(self._cls_endpoint.__name__, number)
 
-            worker = self._cls_backend.create_worker(
+            worker = self._cls_repoBackend.create_worker(
                 name,
                 loopRunner,
                 (self._cls_endpoint, self._errorLink, self._logger, chan),
             )
             worker.start()
-            self._endpoints.append(worker, chan)
+            self._endpoints.append((worker, chan))
 
     def start_repositoryWorker(self):
         self._repoChan = Chan(self._cls_repoBackend)

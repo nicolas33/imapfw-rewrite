@@ -17,6 +17,10 @@ The three most important namespaces are:
 
 """
 
+import time
+
+start = time.time()
+
 import sys
 
 from imapfw.api.engines import ConvertEngine
@@ -32,8 +36,9 @@ from imapfw.api.repositories import (
 )
 from imapfw.api.endpoints import ImapEndpoint, MaildirEndpoint, StateEndpoint
 
-from imapfw.api.managers import RepositoryManager, EngineManager
-from imapfw.api.logger import Logger
+from imapfw.api.managers import RepositoryManager, EngineManager, LoggerManager
+from imapfw.api.loggers import Logger
+from imapfw.errorlink import ErrorLink #FIXME
 # Usual apps should have helpers from imapfw.apps, e.g.
 # classic remote/local/state repositories.
 
@@ -41,6 +46,7 @@ from imapfw.api.logger import Logger
 #from myapp.repositories.home import HomeImap, HomeMaildir, HomeState
 
 
+exitCode = 254
 
 #XXX: both the engine and the logger shouldn't run in the same process.
 try:
@@ -48,10 +54,13 @@ try:
 
     # Enable logging.
     loggerManager = LoggerManager()
-    loggerManager.init(PBackend, errorLink)
-    log = loggerManager.get_chan()
+    loggerManager.init(Logger, PBackend, errorLink)
+    loggerManager.start()
+    logger = loggerManager.create_proxy()
+    logger.enable('M001')
+    logger.info("starting", 'M001')
 
-    # Setup the defaults (fallbacks).
+    ## Setup the defaults (fallbacks).
     #runtime.set_backend(PBackend)
 
     # Setup the app. At the end of the setup, the app is ready to go.
@@ -68,8 +77,8 @@ try:
     imapManager.init(ImapRepository, ImapEndpoint, errorLink, logger)
     maildirManager.init(MaildirRepository, MaildirEndpoint, errorLink, logger)
     stateManager.init(StateRepository, StateEndpoint, errorLink, logger)
-    chans = tuple(i.get_chan() for i in [imapManager, maildirManager, stateManager])
-    engine.init(ConvertEngine, errorLink, logger, *chans)
+    chans = tuple(i.get_repoChan() for i in [imapManager, maildirManager, stateManager])
+    engineManager.init(ConvertEngine, errorLink, logger, *chans)
 
     imapManager.set_maxEndpoints(1)
     maildirManager.set_maxEndpoints(1)
@@ -80,14 +89,18 @@ try:
     imapManager.start()
     maildirManager.start()
     stateManager.start()
-    engine.start()
+    engineManager.start()
 
-    engine.join()
+    #TODO: introduce a tracker for the workers (make use of errorLink) and loop.
+    engineManager.join()
     imapManager.stop()
     maildirManager.stop()
     stateManager.stop()
 
+    exitCode = 0
+
 except KeyboardInterrupt:
+    exitCode = 253
     for manager in [engineManager, imapManager, maildirManager, stateManager]:
         try:
             manager.stop()
@@ -102,4 +115,5 @@ except Exception:
 finally:
     loggerManager.stop()
 
-sys.exit(engine.get_exitCode())
+end = time.time(); print("elapsed time: {}".format(end - start))
+sys.exit(exitCode)

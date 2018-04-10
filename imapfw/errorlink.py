@@ -23,5 +23,6 @@ class ErrorLink(object):
         if resp is not None:
             typ, cls, msg = resp
             if typ == '__EXIT__':
-                exit(msg) # Kill workers, first.
+                exit(typ, cls, msg) # Kill workers, first.
+            print(msg)
 
