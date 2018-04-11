@@ -7,7 +7,7 @@ Workers with channels.
 
 """
 
-from imapfw.pubsub import Chan
+from imapfw.channel import Chan
 
 from .concurrency import MultiProcessingBackend, ThreadingBackend, LocalBackend
 
