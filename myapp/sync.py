@@ -24,9 +24,9 @@ start = time.time()
 import sys
 
 from imapfw.api.engines import ConvertEngine
-from imapfw.api.concurrency import (
-    LocalBackend,
-    ThreadingBackend,
+from imapfw.api.workers import (
+    LocalBackend as LBackend,
+    ThreadingBackend as TBackend,
     MultiProcessingBackend as PBackend,
 )
 from imapfw.api.repositories import (

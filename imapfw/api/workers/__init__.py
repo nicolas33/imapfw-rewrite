@@ -9,8 +9,18 @@ and how to structure the underlying code.
 """
 
 __all__ = [
+    'LocalBackend',
+    'MultiProcessingBackend',
+    'ThreadingBackend',
+
     'SimpleLock',
     'WorkerSafe',
 ]
 
-from imapfw.concurrency.concurrency import SimpleLock, WorkerSafe
+
+from imapfw.workers.concurrency import SimpleLock, WorkerSafe
+from imapfw.workers.worker import (
+    MultiProcessingBackend,
+    ThreadingBackend,
+    LocalBackend,
+)

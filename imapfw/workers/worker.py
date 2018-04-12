@@ -9,7 +9,7 @@ Workers with channels.
 
 from imapfw.channel import Chan
 
-#from .concurrency import MultiProcessingBackend, ThreadingBackend, LocalBackend
+from .concurrency import MultiProcessingBackend, ThreadingBackend, LocalBackend
 
 
 class _Worker(object):
