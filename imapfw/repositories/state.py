@@ -10,11 +10,11 @@ class StateRepository(Repository):
 
     def __init__(self):
         self._chan = None
-        self._errorLink = None
+        self._mngrLink = None
         self._logger = None
 
-    def init(self, errorLink, logger, chan, *chans):
-        self._errorLink = errorLink
+    def init(self, mngrLink, logger, chan, *chans):
+        self._mngrLink = mngrLink
         self._logger = logger
         self._chan = chan
 

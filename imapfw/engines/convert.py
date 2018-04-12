@@ -8,12 +8,12 @@ class ConvertEngine(Engine):
     """Convert the first side into the second side (ASSUMED EMPTY)."""
 
     def __init__(self):
-        self._errorLink = None
+        self._mngrLink = None
         self._logger = None
         self._chans = None
 
-    def init(self, errorLink, logger, *chans):
-        self._errorLink = errorLink
+    def init(self, mngrLink, logger, *chans):
+        self._mngrLink = mngrLink
         self._logger = logger
         self._chans = chans
 

@@ -10,13 +10,13 @@ class Engine(object):
         self._backend = None
         self._chans = None
         self._cls_engine = None
-        self._errorLink = None
+        self._mngrLink = None
         self._logger = None
         self._worker = None
 
-    def init(self, cls_engine, errorLink, logger, *chans):
+    def init(self, cls_engine, mngrLink, logger, *chans):
         self._cls_engine = cls_engine
-        self._errorLink = errorLink
+        self._mngrLink = mngrLink
         self._logger = logger
         self._chans = chans
 
@@ -27,7 +27,7 @@ class Engine(object):
         self._worker = self._backend.create_worker(
             self._cls_engine.__name__,
             oneshotRunner,
-            (self._cls_engine, self._errorLink, self._logger, *self._chans),
+            (self._cls_engine, self._mngrLink, self._logger, *self._chans),
         )
         self._worker.start()
 
@@ -40,14 +40,14 @@ class EngineManager(object):
         self._backend = None
         self._chans = None
         self._cls_engine = None
-        self._errorLink = None
+        self._mngrLink = None
         self._logger = None
         self._worker = None
         self._exitCode = 254
 
-    def init(self, cls_engine, errorLink, logger, *chans):
+    def init(self, cls_engine, mngrLink, logger, *chans):
         self._cls_engine = cls_engine
-        self._errorLink = errorLink
+        self._mngrLink = mngrLink
         self._logger = logger
         self._chans = chans
 
@@ -58,7 +58,7 @@ class EngineManager(object):
         self._worker = self._backend.create_worker(
             self._cls_engine.__name__,
             oneshotRunner,
-            (self._cls_engine, self._errorLink, self._logger, *self._chans),
+            (self._cls_engine, self._mngrLink, self._logger, *self._chans),
         )
         self._worker.start()
 

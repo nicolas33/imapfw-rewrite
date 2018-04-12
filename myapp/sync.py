@@ -34,11 +34,14 @@ from imapfw.api.repositories import (
     MaildirRepository,
     StateRepository,
 )
+from imapfw.api.managers import (
+    EngineManager,
+    LoggerManager,
+    ManagerLink,
+    RepositoryManager,
+)
 from imapfw.api.endpoints import ImapEndpoint, MaildirEndpoint, StateEndpoint
-
-from imapfw.api.managers import RepositoryManager, EngineManager, LoggerManager
 from imapfw.api.loggers import Logger
-from imapfw.errorlink import ErrorLink #FIXME
 # Usual apps should have helpers from imapfw.apps, e.g.
 # classic remote/local/state repositories.
 
@@ -48,13 +51,12 @@ from imapfw.errorlink import ErrorLink #FIXME
 
 exitCode = 254
 
-#XXX: both the engine and the logger shouldn't run in the same process.
 try:
-    errorLink = ErrorLink(PBackend)
+    mngrLink = ManagerLink(PBackend)
 
     # Enable logging.
     loggerManager = LoggerManager()
-    loggerManager.init(Logger, PBackend, errorLink)
+    loggerManager.init(Logger, PBackend, mngrLink)
     loggerManager.start()
     logger = loggerManager.create_proxy()
     logger.enable('M001')
@@ -74,11 +76,11 @@ try:
     stateManager.set_backends(PBackend, PBackend)
     engineManager.set_backend(PBackend)
 
-    imapManager.init(ImapRepository, ImapEndpoint, errorLink, logger)
-    maildirManager.init(MaildirRepository, MaildirEndpoint, errorLink, logger)
-    stateManager.init(StateRepository, StateEndpoint, errorLink, logger)
+    imapManager.init(ImapRepository, ImapEndpoint, mngrLink, logger)
+    maildirManager.init(MaildirRepository, MaildirEndpoint, mngrLink, logger)
+    stateManager.init(StateRepository, StateEndpoint, mngrLink, logger)
     chans = tuple(i.get_repoChan() for i in [imapManager, maildirManager, stateManager])
-    engineManager.init(ConvertEngine, errorLink, logger, *chans)
+    engineManager.init(ConvertEngine, mngrLink, logger, *chans)
 
     imapManager.set_maxEndpoints(1)
     maildirManager.set_maxEndpoints(1)
@@ -91,7 +93,7 @@ try:
     stateManager.start()
     engineManager.start()
 
-    #TODO: introduce a tracker for the workers (make use of errorLink) and loop.
+    #TODO: introduce a tracker for the workers (make use of mngrLink) and loop.
     engineManager.join()
     imapManager.stop()
     maildirManager.stop()

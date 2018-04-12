@@ -3,10 +3,11 @@
 
 
 from imapfw.channel import Chan
+from imapfw.workers import MultiProcessingBackend #XXX: that sucks.
 
 
-class ErrorLink(object):
-    def __init__(self, backend):
+class ManagerLink(object):
+    def __init__(self, backend=MultiProcessingBackend):
         self._chan = Chan(backend)
 
     def __getattr__(self, name):
@@ -17,12 +18,14 @@ class ErrorLink(object):
         self._chan.put((typ, exc.__class__, str(exc)))
 
     def read(self):
-        """Must be run in main."""
-
-        resp = self._chan.get()
+        resp = self._chan.get_nowait()
         if resp is not None:
             typ, cls, msg = resp
             if typ == '__EXIT__':
-                exit(typ, cls, msg) # Kill workers, first.
+                exit(typ, cls, msg)
             print(msg)
 
+    def run(self):
+        """Must be run in main."""
+
+        self.read()

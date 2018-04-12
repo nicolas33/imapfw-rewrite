@@ -42,7 +42,7 @@ class Logger(object):
         self._enabled_logs = []
         self._reader = None
 
-    def init(self, _errorLink, _logger, chan):
+    def init(self, _mngrLink, _logger, chan):
         self._chan = chan
         self._reader = chan.create_downstream_reader()
 

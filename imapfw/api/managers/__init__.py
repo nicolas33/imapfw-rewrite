@@ -15,6 +15,7 @@ and how to structure the underlying code.
 from imapfw.managers import (
     EngineManager,
     LoggerManager,
+    ManagerLink,
     RepositoryManager,
 )
 
@@ -23,4 +24,6 @@ __all__ = [
     'EngineManager',
     'LoggerManager',
     'RepositoryManager',
+
+    'ManagerLink',
 ]
