@@ -14,4 +14,4 @@ class MaildirEndpoint(object):
         self._chan = chan
 
     def loop(self):
-        self._logger.force("in ImapEndpoint")
+        self._logger.force("in MaildirEndpoint")

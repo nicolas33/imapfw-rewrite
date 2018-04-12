@@ -19,4 +19,4 @@ class StateRepository(Repository):
         self._chan = chan
 
     def loop(self):
-        self._logger.force('in ImapRepository')
+        self._logger.force('in StateRepository')
