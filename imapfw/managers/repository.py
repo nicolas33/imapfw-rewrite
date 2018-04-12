@@ -6,13 +6,6 @@ from imapfw.channel import Chan
 from .runners import loopRunner
 
 
-class Repository(object):
-    def loop(self):
-        # Dispatch requests to endpoints.
-        # Return responses (in order?).
-        pass
-
-
 class RepositoryManager(object):
     """Handle the repository and endpoints workers. Runs in main.
 
