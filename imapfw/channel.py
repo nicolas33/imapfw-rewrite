@@ -26,18 +26,24 @@ class Writer(object):
 
 class Chan(object):
     def __init__(self, backend):
-        self.upstream = backend.create_queue()
-        self.downstream = backend.create_queue()
+        self.notifyDown = backend.create_queue()
+        self.notifyUp = backend.create_queue()
 
-    def create_downstream_reader(self):
-        return Reader(self.downstream)
+    def create_downstreamReaderWriter(self):
+        return Reader(self.notifyDown), Writer(self.notifyUp)
 
-    def create_downstream_writer(self):
-        return Writer(self.downstream)
+    def create_upstreamReaderWriter(self):
+        return Reader(self.notifyUp), Writer(self.notifyDown)
 
-    def create_upstream_reader(self):
-        return Reader(self.upstream)
+    def create_downstreamReader(self):
+        return Reader(self.notifyDown)
 
-    def create_upstream_writer(self):
-        return Writer(self.upstream)
+    def create_downstreamWriter(self):
+        return Writer(self.notifyUp)
+
+    def create_upstreamReader(self):
+        return Reader(self.notifyUp)
+
+    def create_upstreamWriter(self):
+        return Writer(self.notifyDown)
 

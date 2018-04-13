@@ -20,7 +20,7 @@ class RepositoryManager(object):
         self._cls_endpoint = None
         self._endpoints = [] # Tuples: (worker, chan)
         self._endpointsChans = []
-        self._mngrLink = None
+        self._masterProxy = None
         self._logger = None
         self._maxEndpoints = 1
         self._repoChan = None
@@ -34,17 +34,16 @@ class RepositoryManager(object):
     def get_className(self):
         return self.__class__.__name__
 
-    def init(self, cls_repo, cls_endpoint, mngrLink, logger):
+    def init(self, cls_repo, cls_endpoint, masterProxy, logger):
         self._cls_repo = cls_repo
         self._cls_endpoint = cls_endpoint
-        self._mngrLink = mngrLink
+        self._masterProxy = masterProxy
         self._logger = logger
 
     def get_repoChan(self):
         return self._repoChan
 
     def run(self):
-        #TODO: read mngrLink and apply error requests.
         pass
 
     def set_maxEndpoints(self, number):
@@ -62,7 +61,7 @@ class RepositoryManager(object):
             worker = self._cls_repoBackend.create_worker(
                 name,
                 loopRunner,
-                (self._cls_endpoint, self._mngrLink, self._logger, chan),
+                (self._cls_endpoint, self._masterProxy, self._logger, chan),
             )
             worker.start()
             self._endpoints.append((worker, chan))
@@ -74,7 +73,7 @@ class RepositoryManager(object):
         self._repositoryWorker = self._cls_repoBackend.create_worker(
             self._cls_repo.__name__,
             loopRunner,
-            (self._cls_repo, self._mngrLink, self._logger, self._repoChan) + chans,
+            (self._cls_repo, self._masterProxy, self._logger, self._repoChan) + chans,
         )
         self._repositoryWorker.start()
 

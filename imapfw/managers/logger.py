@@ -11,14 +11,14 @@ class LoggerManager(object):
     def __init__(self):
         self._backend = None
         self._chan = None
-        self._mngrLink = None
+        self._masterProxy = None
         self._worker = None
         self._cls_logger = None
 
-    def init(self, cls_logger, backend, mngrLink):
+    def init(self, cls_logger, backend, masterProxy):
         self._cls_logger = cls_logger
         self._backend = backend
-        self._mngrLink = mngrLink
+        self._masterProxy = masterProxy
         self._chan = Chan(self._backend)
 
     def create_proxy(self):
@@ -29,7 +29,7 @@ class LoggerManager(object):
         self._worker = self._backend.create_worker(
             "logger",
             loopRunner,
-            (self._cls_logger, self._mngrLink, logger_proxy, self._chan),
+            (self._cls_logger, self._masterProxy, logger_proxy, self._chan),
         )
         self._worker.start()
 

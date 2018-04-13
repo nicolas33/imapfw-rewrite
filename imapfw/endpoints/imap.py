@@ -5,11 +5,11 @@
 class ImapEndpoint(object):
     def __init__(self):
         self._chan = None
-        self._mngrLink = None
+        self._masterProxy = None
         self._logger = None
 
-    def init(self, mngrLink, logger, chan):
-        self._mngrLink = mngrLink
+    def init(self, masterProxy, logger, chan):
+        self._masterProxy = masterProxy
         self._logger = logger
         self._chan = chan
 

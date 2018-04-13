@@ -5,4 +5,4 @@
 from .repository import RepositoryManager
 from .engine import EngineManager
 from .logger import LoggerManager
-from .managerlink import ManagerLink
+from .master import MasterManager, MasterProxy

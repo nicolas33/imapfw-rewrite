@@ -37,7 +37,7 @@ from imapfw.api.repositories import (
 from imapfw.api.managers import (
     EngineManager,
     LoggerManager,
-    ManagerLink,
+    MasterManager,
     RepositoryManager,
 )
 from imapfw.api.endpoints import ImapEndpoint, MaildirEndpoint, StateEndpoint
@@ -52,11 +52,12 @@ from imapfw.api.loggers import Logger
 exitCode = 254
 
 try:
-    mngrLink = ManagerLink(PBackend)
+    masterManager = MasterManager()
+    masterProxy = masterManager.create_proxy()
 
     # Enable logging.
     loggerManager = LoggerManager()
-    loggerManager.init(Logger, PBackend, mngrLink)
+    loggerManager.init(Logger, PBackend, masterProxy)
     loggerManager.start()
     logger = loggerManager.create_proxy()
     logger.enable('M001')
@@ -76,11 +77,11 @@ try:
     stateManager.set_backends(PBackend, PBackend)
     engineManager.set_backend(PBackend)
 
-    imapManager.init(ImapRepository, ImapEndpoint, mngrLink, logger)
-    maildirManager.init(MaildirRepository, MaildirEndpoint, mngrLink, logger)
-    stateManager.init(StateRepository, StateEndpoint, mngrLink, logger)
+    imapManager.init(ImapRepository, ImapEndpoint, masterProxy, logger)
+    maildirManager.init(MaildirRepository, MaildirEndpoint, masterProxy, logger)
+    stateManager.init(StateRepository, StateEndpoint, masterProxy, logger)
     chans = tuple(i.get_repoChan() for i in [imapManager, maildirManager, stateManager])
-    engineManager.init(ConvertEngine, mngrLink, logger, *chans)
+    engineManager.init(ConvertEngine, masterProxy, logger, *chans)
 
     imapManager.set_maxEndpoints(1)
     maildirManager.set_maxEndpoints(1)
@@ -93,8 +94,10 @@ try:
     stateManager.start()
     engineManager.start()
 
-    #TODO: introduce a tracker for the workers (make use of mngrLink) and loop.
-    engineManager.join()
+    #TODO: introduce a tracker for the workers (make use of masterProxy) and loop.
+    #engineManager.join()
+    masterManager.loop()
+
     imapManager.stop()
     maildirManager.stop()
     stateManager.stop()
@@ -114,6 +117,7 @@ except Exception:
             manager.kill()
         except:
             pass
+    raise
 finally:
     loggerManager.stop()
 
