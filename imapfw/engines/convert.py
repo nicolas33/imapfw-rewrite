@@ -21,5 +21,11 @@ class ConvertEngine(Engine):
         return self.__class__.__name__
 
     def run(self):
-        self._logger.force('in ConvertEngine')
-        self._masterProxy.stop_loop(self.get_className())
+        try:
+            self._logger.force('in ConvertEngine')
+            self._logger.force('out ConvertEngine')
+        finally:
+            # Stop the master manager.
+            self._masterProxy.stop_loop(
+                self.get_className(), 'ConvertEngine ended'
+            )

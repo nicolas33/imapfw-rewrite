@@ -19,13 +19,13 @@ class MasterProxy(object):
         return self._reader.get_nowait()
 
     def error(self, cls_requesterName, msg=''):
-        self._writer.put(('__MASTER_ERROR__', cls_requesterName, msg))
+        self._writer.put(('error', cls_requesterName, msg))
 
     def stop_loop(self, cls_requesterName, msg=''):
-        self._writer.put(('__MASTER_STOP_LOOP__', cls_requesterName, msg))
+        self._writer.put(('stop_loop', cls_requesterName, msg))
 
-    def stop_application(self, cls_requesterName, msg):
-        self._writer.put(('__MASTER_EXIT__', cls_requesterName, msg))
+    def stop_app(self, cls_requesterName, msg):
+        self._writer.put(('stop_app', cls_requesterName, msg))
 
 
 #TODO: make this singleton.
@@ -36,6 +36,12 @@ class MasterManager(object):
         self._chan = Chan(MultiProcessingBackend)
         self._reader = self._chan.create_upstreamReader()
         self._writer = self._chan.create_upstreamWriter()
+        self._loop = True
+        self._mainRunners = []
+
+    def add_mainRunners(self, *mainRunners):
+        for mainRunner in mainRunners:
+            self._mainRunners.append(mainRunner)
 
     def create_proxy(self):
         return MasterProxy(self._chan)
@@ -43,31 +49,33 @@ class MasterManager(object):
     def on_error(self, cls_requesterName, msg):
         pass
 
-    def _on_stopLoop(self, cls_requesterName, msg):
+    def on_stop_loop(self, cls_requesterName, msg):
         pass
 
-    def on_stop_application(self, cls_requesterName, msg):
+    def on_stop_app(self, cls_requesterName, msg):
         pass
+
+    def stop_loop(self, cls_requesterName, msg):
+        self._loop = False
+        self.on_stop_loop(cls_requesterName, msg)
+
+    def error(self, cls_requesterName, msg):
+        self.on_error(cls_requesterName, msg)
+
+    def stop_app(self, cls_requesterName, msg):
+        msg = "{} requested exit: {}".format(cls_requesterName, msg)
+        raise RuntimeError(msg)
 
     def run(self, *mainRunners):
         req = self._reader.get_nowait()
         if req is not None:
-            typ, cls_requesterName, msg = req
-            if typ == '__MASTER_STOP_LOOP__':
-                self._on_stopLoop(cls_requesterName, msg)
-                raise StopLoop(msg)
-            if typ == '__MASTER_ERROR__':
-                self.on_error(cls_requesterName, msg)
-                raise StopLoop(msg)
-            if typ == '__MASTER_EXIT__':
-                self.on_stop_application(cls_requesterName, msg)
-                msg = "{} requested exit: {}".format(cls_requesterName, msg)
-                raise RuntimeError(msg)
-        for func in mainRunners:
-            func()
+            methodName, cls_requesterName, msg = req
+            getattr(self, methodName)(cls_requesterName, msg)
+        for run in self._mainRunners:
+            run()
 
     def loop(self, *mainRunners):
-        while True:
+        while self._loop is True:
             try:
                 self.run(*mainRunners)
             except StopLoop:

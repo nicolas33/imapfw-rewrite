@@ -19,26 +19,20 @@ class RepositoryManager(object):
         self._cls_repo = None
         self._cls_endpoint = None
         self._endpoints = [] # Tuples: (worker, chan)
-        self._endpointsChans = []
         self._masterProxy = None
         self._logger = None
         self._maxEndpoints = 1
         self._repoChan = None
         self._repositoryWorker = None
 
-    def _initEndpointChannels(self):
-        for number in range(self._maxEndpoints):
-            chan = Chan(self._cls_endpointBackend)
-            self._endpointsChans.append(chan)
-
-    def get_className(self):
-        return self.__class__.__name__
-
     def init(self, cls_repo, cls_endpoint, masterProxy, logger):
         self._cls_repo = cls_repo
         self._cls_endpoint = cls_endpoint
         self._masterProxy = masterProxy
         self._logger = logger
+
+    def get_className(self):
+        return self.__class__.__name__
 
     def get_repoChan(self):
         return self._repoChan
@@ -55,9 +49,9 @@ class RepositoryManager(object):
 
     def start_endpointWorkers(self):
         for number in range(self._maxEndpoints):
-            chan = self._endpointsChans.pop()
+            # Channel to send requests to.
+            chan = Chan(self._cls_endpointBackend)
             name = "{}.{}".format(self._cls_endpoint.__name__, number)
-
             worker = self._cls_repoBackend.create_worker(
                 name,
                 loopRunner,
@@ -77,11 +71,19 @@ class RepositoryManager(object):
         )
         self._repositoryWorker.start()
 
-
     def start(self):
-        self._initEndpointChannels()
         self.start_endpointWorkers()
         self.start_repositoryWorker()
 
     def stop(self):
-        pass # Send stop message to workers and join.
+        # Send stop message to workers and join.
+        workers_join = []
+        repoProxy = self._cls_repo.cls_proxy(self._logger, self._repoChan)
+        repoProxy.stop_loop()
+        workers_join.append(self._repositoryWorker)
+        for worker, chan in self._endpoints:
+            writer = chan.create_upstreamWriter()
+            writer.put(('stop_loop', (), {}))
+            workers_join.append(worker)
+        for worker in workers_join:
+            worker.join()

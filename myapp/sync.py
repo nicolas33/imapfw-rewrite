@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 
 This command is run by:
@@ -49,6 +50,23 @@ from imapfw.api.loggers import Logger
 #from myapp.repositories.home import HomeImap, HomeMaildir, HomeState
 
 
+# __init__: attributes only: instanciate without issues
+# init: initialize
+
+# Workers:
+# - start: before loop/run
+# - loop: loop
+
+# 2 models:
+# a. override methods
+# b. hooks
+
+
+def chans_from(*classes):
+    d = tuple(cls.get_repoChan() for cls in classes)
+    return d
+
+
 exitCode = 254
 
 try:
@@ -68,56 +86,59 @@ try:
 
     # Setup the app. At the end of the setup, the app is ready to go.
     imapManager = RepositoryManager()
-    maildirManager = RepositoryManager()
-    stateManager = RepositoryManager()
+    #maildirManager = RepositoryManager()
+    #stateManager = RepositoryManager()
     engineManager = EngineManager()
 
     imapManager.set_backends(PBackend, PBackend)
-    maildirManager.set_backends(PBackend, PBackend)
-    stateManager.set_backends(PBackend, PBackend)
+    #maildirManager.set_backends(PBackend, PBackend)
+    #stateManager.set_backends(PBackend, PBackend)
     engineManager.set_backend(PBackend)
 
     imapManager.init(ImapRepository, ImapEndpoint, masterProxy, logger)
-    maildirManager.init(MaildirRepository, MaildirEndpoint, masterProxy, logger)
-    stateManager.init(StateRepository, StateEndpoint, masterProxy, logger)
-    chans = tuple(i.get_repoChan() for i in [imapManager, maildirManager, stateManager])
+    #maildirManager.init(MaildirRepository, MaildirEndpoint, masterProxy, logger)
+    #stateManager.init(StateRepository, StateEndpoint, masterProxy, logger)
+
+    #chans = chans_from(imapManager, maildirManager, stateManager)
+    chans = chans_from(imapManager)
     engineManager.init(ConvertEngine, masterProxy, logger, *chans)
 
     imapManager.set_maxEndpoints(1)
-    maildirManager.set_maxEndpoints(1)
-    stateManager.set_maxEndpoints(1)
+    #maildirManager.set_maxEndpoints(1)
+    #stateManager.set_maxEndpoints(1)
     # Setup end.
 
     # Start here #
-    imapManager.start()
-    maildirManager.start()
-    stateManager.start()
+    imapManager.start() #BUG?
+    #maildirManager.start()
+    #stateManager.start()
     engineManager.start()
 
-    #TODO: introduce a tracker for the workers (make use of masterProxy) and loop.
-    #engineManager.join()
     masterManager.loop()
 
     imapManager.stop()
-    maildirManager.stop()
-    stateManager.stop()
+    #maildirManager.stop()
+    #stateManager.stop()
 
     exitCode = 0
 
 except KeyboardInterrupt:
     exitCode = 253
-    for manager in [engineManager, imapManager, maildirManager, stateManager]:
-        try:
-            manager.stop()
-        except:
-            pass
+    try:
+        for manager in [engineManager, imapManager, maildirManager, stateManager]:
+            try:
+                manager.stop()
+            except:
+                pass
+    except:
+        pass
 except Exception:
+    raise
     for manager in [engineManager, imapManager, maildirManager, stateManager]:
         try:
             manager.kill()
         except:
             pass
-    raise
 finally:
     loggerManager.stop()
 

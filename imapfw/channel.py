@@ -41,6 +41,9 @@ class Chan(object):
     def create_downstreamWriter(self):
         return Writer(self.notifyUp)
 
+    def create_proxy(self):
+        return Proxy(self.notifyDown, self.notifyUp)
+
     def create_upstreamReader(self):
         return Reader(self.notifyUp)
 
